@@ -11,12 +11,279 @@ datasource db {
 }
 
 model User {
-  id         Int      @id @default(autoincrement())
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  id Int @id @default(autoincrement())
 
   email String @unique
   hash  String
 
+  first_name        String?
+  last_name         String?
+  Social            Social[]
+  User_subscription UserSubscription[]
+  Resume            Resume[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
   @@map("users")
+}
+
+model Social {
+  id   Int    @id @default(autoincrement())
+  name String
+  type Int    @db.TinyInt
+
+  user_id Int
+  User    User @relation(fields: [user_id], references: [id])
+
+  @@map("social")
+}
+
+model UserSubscription {
+  id              Int          @id @default(autoincrement())
+  user_id         Int
+  user            User         @relation(fields: [user_id], references: [id])
+  subscription_id Int
+  Subscription    Subscription @relation(fields: [subscription_id], references: [id])
+
+  @@map("user_subscription")
+}
+
+model Subscription {
+  id               Int                @id @default(autoincrement())
+  type             Int
+  UserSubscription UserSubscription[]
+}
+
+model Resume {
+  id Int @id @default(autoincrement())
+
+  birth_date  DateTime
+  birth_place String
+
+  color String @db.VarChar(10)
+
+  email      String
+  first_name String
+  last_name  String
+
+  hide_skill_level Int    @db.TinyInt
+  local            String @db.VarChar(3)
+  title            String @db.VarChar(40)
+  phone_number     String @db.VarChar(20)
+  nationality      String
+  job_name         String
+  postal_code      String @db.VarChar(5)
+
+  summary       String
+  section_order String
+  view_id       String
+
+  spacing Int @db.TinyInt
+
+  job_id Int
+  job   Job @relation(fields: [job_id], references: [id])
+
+  city           City             @relation(fields: [city_id], references: [id])
+  city_id        Int
+  Country        Country?         @relation(fields: [country_id], references: [id])
+  country_id     Int?
+  Template       Template?        @relation(fields: [template_id], references: [id])
+  template_id    Int?
+  User           User?            @relation(fields: [user_id], references: [id])
+  user_id        Int?
+  Skill          Skill[]
+  avatar         Avatar[]
+  Education      Education[]
+  created_at     DateTime         @default(now())
+  updated_at     DateTime         @updatedAt
+  Activity       Activity[]
+  WorkExperience WorkExperience[]
+
+  @@map("resume")
+}
+
+model Job {
+  id       Int        @id @default(autoincrement())
+  title    Int
+  Resume   Resume[]
+  JobSkill JobSkill[]
+
+  @@map("job")
+}
+
+model JobSkill {
+  id    Int @id @default(autoincrement())
+  job   Job @relation(fields: [job_id], references: [id])
+  job_id Int
+
+  @@map("job_skill")
+}
+
+model City {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  Education      Education[]
+  Resume         Resume[]
+  Country        Country?         @relation(fields: [country_id], references: [id])
+  country_id      Int?
+  Activity       Activity[]
+  WorkExperience WorkExperience[]
+
+  @@map("city")
+}
+
+model Country {
+  id     Int      @id @default(autoincrement())
+  name   String
+  City   City[]
+  Resume Resume[]
+
+  @@map("country")
+}
+
+model Template {
+  id Int @id @default(autoincrement())
+
+  html            String
+  style           String
+  primary_color   String
+  secondary_color String
+
+  name            String
+  preview_img_url String
+
+  resume           Resume[]
+  template_section TemplateSection[]
+  created_at       DateTime          @default(now())
+  updated_at       DateTime          @updatedAt
+
+  @@map("template")
+}
+
+model TemplateSection {
+  id Int @id @default(autoincrement())
+
+  type Int    @db.TinyInt
+  html String
+
+  Template   Template? @relation(fields: [template_id], references: [id])
+  template_id Int?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("template_section")
+}
+
+model Skill {
+  id Int @id @default(autoincrement())
+
+  level     Int     @db.TinyInt
+  position  Int     @db.TinyInt
+  name      String
+  Resume    Resume? @relation(fields: [resume_id], references: [id])
+  resume_id Int?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("skill")
+}
+
+model Avatar {
+  id Int @id @default(autoincrement())
+
+  large_url    String
+  medium_url   String
+  original_url String
+  small_url    String
+
+  is_blank Int @db.TinyInt
+
+  Resume    Resume? @relation(fields: [resume_id], references: [id])
+  resume_id Int?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("avatar")
+}
+
+model Education {
+  id Int @id @default(autoincrement())
+
+  date_from  DateTime
+  date_until DateTime
+
+  degree      String
+  description String
+  school      String
+  position    Int
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  City      City?  @relation(fields: [city_id], references: [id])
+  city_id   Int?
+  Resume    Resume @relation(fields: [resume_id], references: [id])
+  resume_id Int
+
+  @@map("education")
+}
+
+model Activity {
+  id Int @id @default(autoincrement())
+
+  position   Int      @db.TinyInt
+  date_from  DateTime
+  date_until DateTime
+
+  title       String
+  description String
+  employer     String
+
+  Resume     Resume   @relation(fields: [resume_id], references: [id])
+  resume_id  Int
+  City       City     @relation(fields: [city_id], references: [id])
+  city_id    Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("activity")
+}
+
+model WorkExperience {
+  id Int @id @default(autoincrement())
+
+  date_from  DateTime
+  date_until DateTime
+
+  description String
+  title       String
+  position    Int    @db.TinyInt
+  employer    String
+
+  Resume     Resume   @relation(fields: [resume_id], references: [id])
+  resume_id  Int
+  City       City     @relation(fields: [city_id], references: [id])
+  city_id    Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("work_experience")
+}
+
+model SocialProfile {
+  id Int @id @default(autoincrement())
+
+  label    String
+  link     String
+  position Int    @db.TinyInt
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("social_profile")
 }
